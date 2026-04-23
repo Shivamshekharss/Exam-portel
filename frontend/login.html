@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login | PREPHUT</title>
+    <link rel="stylesheet" href="login.css" />
+    <style>
+        .alert { padding: 15px; margin: 10px 0; border-radius: 4px; width: 100%; text-align: center; }
+        .alert-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .link-button { background: none; border: none; color: #0066cc; text-decoration: underline; cursor: pointer; padding: 0; font: inherit; }
+        .link-button:hover { color: #0052a3; }
+        .btn { padding: 10px 14px; border-radius: 6px; border: none; background: #19345e; color: #fff; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-left">
+            <img src="images/Prep_LOGO.png" alt="PrepHut Logo" class="logo-img" />
+            <h2 class="logo">PREPHUT</h2>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="login.html" class="active">Student Portal</a></li>
+        </ul>
+        <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+    </nav>
+
+    <div class="form-container">
+        <h2>Login to your account</h2>
+        <div id="message-container"></div>
+        <form id="loginForm" autocomplete="off">
+            <input type="email" id="loginEmail" name="email" placeholder="Email Address" required />
+            <input type="password" id="loginPassword" name="password" placeholder="Password" required />
+            <button type="submit" class="btn">Login</button>
+        </form>
+        <p class="form-link">
+            <button type="button" onclick="handleForgotPassword(event)" class="link-button">Forgot Password?</button><br />
+            Don't have an account? <a href="register.html">Register here</a>
+        </p>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+        }
+
+        async function handleForgotPassword(event) {
+            if (event) event.preventDefault();
+            const email = document.getElementById("loginEmail").value.trim();
+            const messageContainer = document.getElementById("message-container");
+            messageContainer.innerHTML = '';
+
+            if (!email) {
+                messageContainer.innerHTML = '<div class="alert alert-error">Please enter your email address first.</div>';
+                return;
+            }
+
+            try {
+                const res = await fetch('http://localhost:5000/api/auth/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await res.json().catch(() => ({}));
+
+                if (res.ok && data.resetToken) {
+                    localStorage.setItem('resetToken', data.resetToken);
+
+                    try {
+                        await navigator.clipboard.writeText(data.resetToken);
+                        messageContainer.innerHTML = '<div class="alert alert-success">Reset token copied! Redirecting...</div>';
+                    } catch (clipboardError) {
+                        messageContainer.innerHTML = '<div class="alert alert-success">Reset token saved! Redirecting...</div>';
+                    }
+
+                    setTimeout(() => {
+                        window.location.href = 'reset-password.html';
+                    }, 1000);
+                } else {
+                    messageContainer.innerHTML = `<div class="alert alert-error">${data.message || 'Email not found'}</div>`;
+                }
+            } catch (err) {
+                console.error('Forgot password error:', err);
+                messageContainer.innerHTML = '<div class="alert alert-error">Unable to contact server. Try again later.</div>';
+            }
+        }
+
+       document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const messageContainer = document.getElementById('message-container');
+    messageContainer.innerHTML = '';
+
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const submitButton = this.querySelector('button[type="submit"]');
+
+    if (!email || !password) {
+        messageContainer.innerHTML = '<div class="alert alert-error">Enter both email and password.</div>';
+        return;
+    }
+
+    submitButton.disabled = true;
+    const originalText = submitButton.textContent;
+    submitButton.textContent = 'Logging in...';
+
+    try {
+        const res = await fetch('http://localhost:5000/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        console.log('Login API Response:', data); // Debugging API response
+
+        if (res.ok) {
+            if (data.name && data.email) {
+                // Store user details (name and email) in localStorage
+                localStorage.setItem('user', JSON.stringify({ name: data.name, email: data.email }));
+                localStorage.setItem('loggedIn', 'true');
+            }
+
+            messageContainer.innerHTML = '<div class="alert alert-success">Login successful. Redirecting to dashboard...</div>';
+            setTimeout(() => { window.location.href = 'dashboard.html'; }, 900);
+        } else {
+            const msg = (data.message || '').toLowerCase();
+            if (res.status === 404 || msg.includes('not found')) {
+                messageContainer.innerHTML = '<div class="alert alert-error">Invalid user</div>';
+            } else if (res.status === 401 || msg.includes('password')) {
+                messageContainer.innerHTML = '<div class="alert alert-error">Invalid password</div>';
+            } else {
+                messageContainer.innerHTML = `<div class="alert alert-error">${data.message || 'Login failed'}</div>`;
+            }
+        }
+    } catch (err) {
+        messageContainer.innerHTML = '<div class="alert alert-error">Unable to contact server. Try again later.</div>';
+    } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = originalText;
+    }
+});
+    </script>
+</body>
+</html>
