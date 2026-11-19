@@ -17,13 +17,13 @@ function registerUser(event) {
   // Prepare payload for backend (ignore phone)
   const payload = { name, email, password };
 
-  fetch("http://localhost:5000/api/auth/register", {
+fetch("https://prephut-backend.onrender.com/api/auth/register", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify(payload)
-  })
+})
     .then(response => response.json())
     .then(data => {
       if (data.message === "User registered successfully!") {
@@ -49,7 +49,7 @@ function forgotPassword(event) {
     return false;
   }
 
-  fetch("http://localhost:5000/api/auth/forgot-password", {
+  fetch("https://prephut-backend.onrender.com/api/auth/forgot-password", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -79,7 +79,7 @@ function resetPassword(event) {
   const token = document.getElementById("resetToken").value;
   const newPassword = document.getElementById("newPassword").value;
 
-  fetch("http://localhost:5000/api/auth/reset-password", {
+  fetch("https://prephut-backend.onrender.com/api/auth/reset-password", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -119,7 +119,7 @@ function loginUser(event) {
 
   const payload = { email, password };
 
-  fetch("http://localhost:5000/api/auth/login", {
+  fetch("https://prephut-backend.onrender.com/api/auth/login", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
