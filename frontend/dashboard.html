@@ -26,10 +26,10 @@
 
   <!-- Main Dashboard Content -->
   <main class="dashboard">
-   <section class="profile-card">
-  <h3>My Profile</h3>
-  <p><strong>Name:</strong> <span id="userName">Loading...</span></p>
-  <p><strong>Email:</strong> <span id="userEmail">Loading...</span></p>
+    <section class="profile-card">
+      <h3>My Profile</h3>
+      <p><strong>Name:</strong> <span id="userName">Loading...</span></p>
+      <p><strong>Email:</strong> <span id="userEmail">Loading...</span></p>
     </section>
     <section class="actions">
       <button class="btn start-exam" onclick="window.location.href='exam.html'">Start Exam</button>
@@ -63,22 +63,18 @@
 
   <script>
     // Fetch user info and load profile on dashboard
-function loadDashboard() {
-    const userStr = localStorage.getItem("user");
-    const loggedIn = localStorage.getItem("loggedIn");
-
-    if (!loggedIn || !userStr) {
+    function loadDashboard() {
+      const userStr = localStorage.getItem("user");
+      const loggedIn = localStorage.getItem("loggedIn");
+      if (!loggedIn || !userStr) {
         window.location.href = "login.html";
         return;
+      }
+      const user = JSON.parse(userStr);
+      document.getElementById("userName").textContent = user.name || "N/A";
+      document.getElementById("userEmail").textContent = user.email || "N/A";
     }
 
-    const user = JSON.parse(userStr);
-    console.log('User Data from localStorage:', user); // Debugging user data
-
-    // Display the name and email on the dashboard
-    document.getElementById("userName").textContent = user.name || "N/A";
-    document.getElementById("userEmail").textContent = user.email || "N/A";
-}
     function logout() {
       localStorage.removeItem("loggedIn");
       localStorage.removeItem("user");
