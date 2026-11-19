@@ -112,9 +112,11 @@ function loadDashboard() {
   document.getElementById("userName").textContent = user.name || "";
   document.getElementById("userEmail").textContent = user.email || "";
 }
+
 function loginUser(event) {
   event.preventDefault();
-  const email = document.getElementById("loginEmail").value;
+
+  const email = document.getElementById("loginEmail").value.trim();
   const password = document.getElementById("loginPassword").value;
 
   const payload = { email, password };
@@ -126,23 +128,44 @@ function loginUser(event) {
     },
     body: JSON.stringify(payload)
   })
-    .then(response => response.json())
+    .then(async response => {
+      const data = await response.json();
+
+      console.log("LOGIN STATUS:", response.status);
+      console.log("LOGIN RESPONSE:", data);
+
+      if (!response.ok) {
+        throw new Error(data.message || "Login failed");
+      }
+
+      return data;
+    })
     .then(data => {
       if (data.message === "Login successful!") {
-        alert("🎉 Login successful!");
-        localStorage.setItem("loggedIn", true);
-        localStorage.setItem("user", JSON.stringify({ name: data.name, email: data.email }));
+
+        localStorage.setItem("loggedIn", "true");
+        localStorage.setItem("user", JSON.stringify({
+          name: data.name,
+          email: data.email
+        }));
+
+        console.log("SAVED USER:", localStorage.getItem("user"));
+        console.log("SAVED LOGIN:", localStorage.getItem("loggedIn"));
+
         window.location.href = "dashboard.html";
+
       } else {
-        alert("❌ " + (data.message || "User not found error"));
+        alert(data.message || "Login failed");
       }
     })
     .catch(error => {
-      alert("❌ User not found error");
-      console.error(error);
+      console.error("LOGIN ERROR:", error);
+      alert(error.message);
     });
+
   return false;
 }
+
 function logout() {
   localStorage.removeItem("loggedIn");
   window.location.href = "login.html";
